@@ -7,17 +7,19 @@ export default defineEventHandler(async (event) => {
       throw new Error('ID is required')
     }
 
-    const body = await readBody(event)
-    const result = await coinHistoryService.update(id, body)
+    const result = await coinHistoryService.delete(id)
     
     if (!result) {
-      throw new Error('Record not found')
+      throw createError({
+        statusCode: 404,
+        message: 'Record not found'
+      })
     }
 
-    return result
+    return { message: 'Deleted successfully' }
   } catch (error: any) {
     throw createError({
-      statusCode: 400,
+      statusCode: error.statusCode || 400,
       message: error.message
     })
   }

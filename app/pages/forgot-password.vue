@@ -12,8 +12,8 @@
             TechFinance
           </span>
         </div>
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">Đăng nhập</h1>
-        <p class="text-gray-600 dark:text-gray-400">Chào mừng bạn trở lại với TechFinance</p>
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">Quên mật khẩu</h1>
+        <p class="text-gray-600 dark:text-gray-400">Nhập email của bạn để đặt lại mật khẩu</p>
       </div>
 
       <!-- Form card -->
@@ -25,50 +25,16 @@
         <!-- Form content -->
         <form @submit.prevent="handleSubmit" class="space-y-8 relative">
           <div class="space-y-[25px]">
-            <UFormGroup label="Email" name="email" class="h-[32px]">
+            <UFormGroup label="Email" name="email" class="mb-0">
               <UInput
                 v-model="form.email"
                 type="email"
                 placeholder="Nhập email"
                 autocomplete="email"
                 required
-                class="w-full h-[46px] text-base mb-4"
+                class="w-full h-[32px] text-base"
               />
             </UFormGroup>
-
-            <UFormGroup label="Mật khẩu" name="password" class="mb-0">
-              <UInput
-                v-model="form.password"
-                :type="showPassword ? 'text' : 'password'"
-                placeholder="Nhập mật khẩu"
-                autocomplete="current-password"
-                required
-                class="w-full h-[32px] text-base"
-              >
-                <template #trailing>
-                  <UButton
-                    color="neutral"
-                    variant="ghost"
-                    icon="i-heroicons-eye"
-                    @click="showPassword = !showPassword"
-                  />
-                </template>
-              </UInput>
-            </UFormGroup>
-          </div>
-
-          <div class="flex items-center justify-between py-2">
-            <UCheckbox
-              v-model="form.remember"
-              label="Ghi nhớ đăng nhập"
-              class="text-sm"
-            />
-            <NuxtLink
-              to="/forgot-password"
-              class="text-sm text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors duration-200"
-            >
-              Quên mật khẩu?
-            </NuxtLink>
           </div>
 
           <UButton
@@ -76,18 +42,18 @@
             color="primary"
             block
             :loading="loading"
-            class="h-[32px] text-base font-medium"
+            class="h-[32px] text-base font-medium mt-4"
           >
-            Đăng nhập
+            Gửi yêu cầu
           </UButton>
 
           <div class="text-center text-sm text-gray-600 dark:text-gray-400">
-            Chưa có tài khoản?
+            Đã nhớ mật khẩu?
             <NuxtLink
-              to="/register"
+              to="/login"
               class="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300 font-medium transition-colors duration-200"
             >
-              Đăng ký ngay
+              Đăng nhập
             </NuxtLink>
           </div>
         </form>
@@ -124,44 +90,22 @@ definePageMeta({
   layout: 'auth',
 })
 
-const toast = useToast()
-
 const form = ref({
-  email: '',
-  password: '',
-  remember: false
+  email: ''
 })
 
 const errors = reactive({})
+const errorMessage = ref('')
 const loading = ref(false)
-const showPassword = ref(false)
 
 const validateForm = (): boolean => {
   errors.email = ''
-  errors.password = ''
+  errorMessage.value = ''
 
   // Validate email
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(form.value.email)) {
     errors.email = 'Email không hợp lệ'
-    toast.add({
-      title: 'Lỗi',
-      description: 'Email không hợp lệ',
-      color: 'error',
-      icon: 'i-heroicons-exclamation-circle'
-    })
-    return false
-  }
-
-  // Validate password
-  if (!form.value.password) {
-    errors.password = 'Vui lòng nhập mật khẩu'
-    toast.add({
-      title: 'Lỗi',
-      description: 'Vui lòng nhập mật khẩu',
-      color: 'error',
-      icon: 'i-heroicons-exclamation-circle'
-    })
     return false
   }
 
@@ -172,44 +116,20 @@ const handleSubmit = async () => {
   if (!validateForm()) return
 
   loading.value = true
+  errorMessage.value = ''
 
   try {
-    const response = await $fetch('/api/auth/login', {
+    await $fetch('/api/auth/forgot-password', {
       method: 'POST',
       body: form.value
     })
     
-    // Lưu token vào cookie
-    const authCookie = useCookie('auth_token', {
-      maxAge: form.value.remember ? 60 * 60 * 24 * 30 : 60 * 60 * 24 // 30 days if remember, 1 day if not
-    })
-    authCookie.value = response.token
-
-    // Hiển thị thông báo thành công
-    toast.add({
-      title: 'Thành công',
-      description: 'Đăng nhập thành công',
-      color: 'success',
-      icon: 'i-heroicons-check-circle'
-    })
-
-    // Chuyển hướng về trang chủ
-    navigateTo('/')
+    // Chuyển hướng về trang đăng nhập
+    navigateTo('/login')
   } catch (error: any) {
-    toast.add({
-      title: 'Lỗi',
-      description: error.data?.message || 'Email hoặc mật khẩu không chính xác',
-      color: 'error',
-      icon: 'i-heroicons-exclamation-circle'
-    })
+    errorMessage.value = error.data?.message || 'Có lỗi xảy ra, vui lòng thử lại'
   } finally {
     loading.value = false
   }
 }
-</script>
-
-<style scoped>
-.form-input:focus {
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
-}
-</style> 
+</script> 

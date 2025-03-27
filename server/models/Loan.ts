@@ -1,0 +1,76 @@
+import mongoose from 'mongoose'
+
+const loanSchema = new mongoose.Schema({
+  amountVND: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  amountUSDT: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  term: {
+    type: String,
+    required: true,
+    enum: ['3_MONTHS', '6_MONTHS', '1_YEAR']
+  },
+  interestRate: {
+    type: Number,
+    required: true,
+    min: 0,
+    max: 20
+  },
+  borrowerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  loanDate: {
+    type: Date,
+    required: true
+  },
+  interestStartDate: {
+    type: Date,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['PENDING', 'ACTIVE', 'COMPLETED', 'CANCELLED'],
+    default: 'PENDING'
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+})
+
+// Middleware to update the updatedAt field
+loanSchema.pre('save', function(next) {
+  this.updatedAt = new Date()
+  next()
+})
+
+// Virtual field for remaining days
+loanSchema.virtual('remainingDays').get(function() {
+  const today = new Date()
+  const termInDays = {
+    '3_MONTHS': 90,
+    '6_MONTHS': 180,
+    '1_YEAR': 365
+  }
+  const endDate = new Date(this.interestStartDate)
+  endDate.setDate(endDate.getDate() + termInDays[this.term])
+  return Math.max(0, Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)))
+})
+
+export const Loan = mongoose.model('Loan', loanSchema) 

@@ -2,8 +2,10 @@ import mongoose, { Document, Model } from 'mongoose'
 import bcrypt from 'bcrypt'
 
 export interface IUser {
+  name?: string
   email: string
   password: string
+  role: string
   createdAt?: Date
   updatedAt?: Date
 }
@@ -17,6 +19,11 @@ export interface IUserModel extends Model<IUserDocument> {
 }
 
 const userSchema = new mongoose.Schema<IUserDocument>({
+  name: {
+    type: String,
+    required: false,
+    trim: true
+  },
   email: {
     type: String,
     required: true,
@@ -26,6 +33,12 @@ const userSchema = new mongoose.Schema<IUserDocument>({
   },
   password: {
     type: String,
+    required: true
+  },
+  role: {
+    type: String,
+    enum: ['ADMIN', 'USER'],
+    default: 'USER',
     required: true
   }
 }, {

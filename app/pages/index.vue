@@ -1,138 +1,235 @@
 <template>
   <div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+      <h1 class="text-2xl font-bold">Tổng quan</h1>
+      <div class="flex gap-2">
+        <UButton
+          color="primary"
+          icon="i-heroicons-arrow-path"
+          @click="refreshData"
+        >
+          Làm mới
+        </UButton>
+      </div>
+    </div>
+
     <!-- Stats Grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Total Investment -->
       <UCard>
-        <div class="flex items-center gap-4">
-          <div class="p-3 bg-primary-100 dark:bg-primary-900 rounded-xl">
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">Tổng đầu tư</h3>
             <UIcon name="i-heroicons-banknotes" class="w-6 h-6 text-primary-500" />
           </div>
-          <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Tổng doanh thu</div>
-            <div class="text-xl font-semibold">2.5 tỷ VND</div>
+        </template>
+
+        <div class="space-y-2">
+          <div class="text-3xl font-bold">
+            {{ formatNumber(totalInvestment) }} USDT
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <span :class="investmentChange >= 0 ? 'text-success-500' : 'text-error-500'">
+              <UIcon :name="investmentChange >= 0 ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'" />
+              {{ Math.abs(investmentChange) }}%
+            </span>
+            <span class="text-gray-500">so với tháng trước</span>
           </div>
         </div>
       </UCard>
-      
+
+      <!-- Total Rewards -->
       <UCard>
-        <div class="flex items-center gap-4">
-          <div class="p-3 bg-green-100 dark:bg-green-900 rounded-xl">
-            <UIcon name="i-heroicons-arrow-trending-up" class="w-6 h-6 text-green-500" />
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">Tổng phần thưởng</h3>
+            <UIcon name="i-heroicons-gift" class="w-6 h-6 text-success-500" />
           </div>
-          <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Gói vay thành công</div>
-            <div class="text-xl font-semibold">324 gói</div>
+        </template>
+
+        <div class="space-y-2">
+          <div class="text-3xl font-bold">
+            {{ formatNumber(totalRewards) }} USDT
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <span :class="rewardsChange >= 0 ? 'text-success-500' : 'text-error-500'">
+              <UIcon :name="rewardsChange >= 0 ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'" />
+              {{ Math.abs(rewardsChange) }}%
+            </span>
+            <span class="text-gray-500">so với tháng trước</span>
           </div>
         </div>
       </UCard>
-      
+
+      <!-- Total Loans -->
       <UCard>
-        <div class="flex items-center gap-4">
-          <div class="p-3 bg-yellow-100 dark:bg-yellow-900 rounded-xl">
-            <UIcon name="i-heroicons-clock" class="w-6 h-6 text-yellow-500" />
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">Tổng khoản vay</h3>
+            <UIcon name="i-heroicons-currency-dollar" class="w-6 h-6 text-warning-500" />
           </div>
-          <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Đang xử lý</div>
-            <div class="text-xl font-semibold">45 gói</div>
+        </template>
+
+        <div class="space-y-2">
+          <div class="text-3xl font-bold">
+            {{ formatNumber(totalLoans) }} VNĐ
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <span :class="loansChange >= 0 ? 'text-success-500' : 'text-error-500'">
+              <UIcon :name="loansChange >= 0 ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'" />
+              {{ Math.abs(loansChange) }}%
+            </span>
+            <span class="text-gray-500">so với tháng trước</span>
           </div>
         </div>
       </UCard>
-      
+
+      <!-- Net Profit -->
       <UCard>
-        <div class="flex items-center gap-4">
-          <div class="p-3 bg-red-100 dark:bg-red-900 rounded-xl">
-            <UIcon name="i-heroicons-x-circle" class="w-6 h-6 text-red-500" />
+        <template #header>
+          <div class="flex items-center justify-between">
+            <h3 class="text-lg font-semibold">Lợi nhuận ròng</h3>
+            <UIcon name="i-heroicons-chart-bar" class="w-6 h-6 text-info-500" />
           </div>
-          <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Từ chối</div>
-            <div class="text-xl font-semibold">12 gói</div>
+        </template>
+
+        <div class="space-y-2">
+          <div class="text-3xl font-bold" :class="netProfit >= 0 ? 'text-success-500' : 'text-error-500'">
+            {{ formatNumber(netProfit) }} USDT
+          </div>
+          <div class="flex items-center gap-2 text-sm">
+            <span :class="profitChange >= 0 ? 'text-success-500' : 'text-error-500'">
+              <UIcon :name="profitChange >= 0 ? 'i-heroicons-arrow-trending-up' : 'i-heroicons-arrow-trending-down'" />
+              {{ Math.abs(profitChange) }}%
+            </span>
+            <span class="text-gray-500">so với tháng trước</span>
           </div>
         </div>
       </UCard>
     </div>
 
     <!-- Charts Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <!-- Line Chart -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Investment vs Rewards Chart -->
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
-            <h3 class="text-base font-semibold">Xu hướng doanh thu</h3>
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-ellipsis-horizontal"
+            <h3 class="text-lg font-semibold">Đầu tư vs Phần thưởng</h3>
+            <USelect
+              v-model="chartPeriod"
+              :options="[
+                { label: '7 ngày', value: '7d' },
+                { label: '30 ngày', value: '30d' },
+                { label: '90 ngày', value: '90d' }
+              ]"
+              class="w-32"
             />
           </div>
         </template>
+
         <div class="h-80">
-          <Line :data="revenueData" :options="lineOptions" />
+          <LineChart
+            :data="investmentRewardsData"
+            :options="{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'top'
+                }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: {
+                    callback: (value) => formatNumber(value) + ' USDT'
+                  }
+                }
+              }
+            }"
+          />
         </div>
       </UCard>
 
-      <!-- Bar Chart -->
+      <!-- Profit Distribution Chart -->
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
-            <h3 class="text-base font-semibold">Số lượng gói vay theo tháng</h3>
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-ellipsis-horizontal"
+            <h3 class="text-lg font-semibold">Phân bố lợi nhuận</h3>
+            <USelect
+              v-model="distributionPeriod"
+              :options="[
+                { label: '7 ngày', value: '7d' },
+                { label: '30 ngày', value: '30d' },
+                { label: '90 ngày', value: '90d' }
+              ]"
+              class="w-32"
             />
           </div>
         </template>
-        <div class="h-80">
-          <Bar :data="loanData" :options="barOptions" />
-        </div>
-      </UCard>
 
-      <!-- Pie Chart -->
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-base font-semibold">Phân bổ loại gói vay</h3>
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-ellipsis-horizontal"
-            />
-          </div>
-        </template>
         <div class="h-80">
-          <Pie :data="distributionData" :options="pieOptions" />
-        </div>
-      </UCard>
-
-      <!-- Doughnut Chart -->
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-base font-semibold">Tỷ lệ thành công</h3>
-            <UButton
-              color="gray"
-              variant="ghost"
-              icon="i-heroicons-ellipsis-horizontal"
-            />
-          </div>
-        </template>
-        <div class="h-80">
-          <Doughnut :data="successRateData" :options="doughnutOptions" />
+          <DoughnutChart
+            :data="profitDistributionData"
+            :options="{
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'right'
+                }
+              }
+            }"
+          />
         </div>
       </UCard>
     </div>
+
+    <!-- Recent Transactions -->
+    <UCard>
+      <template #header>
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold">Giao dịch gần đây</h3>
+          <UButton
+            color="primary"
+            variant="ghost"
+            to="/transactions"
+          >
+            Xem tất cả
+          </UButton>
+        </div>
+      </template>
+
+      <UTable
+        :columns="transactionColumns"
+        :data="recentTransactions"
+      >
+        <template #type-cell="{ row }">
+          <UBadge
+            :color="getTransactionTypeColor(row.type)"
+            :label="getTransactionTypeLabel(row.type)"
+          />
+        </template>
+
+        <template #amount-cell="{ row }">
+          <span :class="row.amount >= 0 ? 'text-success-500' : 'text-error-500'">
+            {{ row.amount >= 0 ? '+' : '' }}{{ formatNumber(row.amount) }} USDT
+          </span>
+        </template>
+      </UTable>
+    </UCard>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Line, Bar, Pie, Doughnut } from 'vue-chartjs'
+import { Line as LineChart, Doughnut as DoughnutChart } from 'vue-chartjs'
 import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   PointElement,
   LineElement,
-  BarElement,
   Title,
   Tooltip,
   Legend,
@@ -144,89 +241,137 @@ ChartJS.register(
   LinearScale,
   PointElement,
   LineElement,
-  BarElement,
   Title,
   Tooltip,
   Legend,
   ArcElement
 )
 
-// Line Chart Data
-const revenueData = {
-  labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
-  datasets: [
-    {
-      label: 'Doanh thu (tỷ VND)',
-      data: [1.2, 1.5, 1.8, 2.1, 1.9, 2.3, 2.5, 2.8, 2.6, 3.0, 3.2, 3.5],
-      borderColor: '#3B82F6',
-      backgroundColor: '#3B82F6',
-      tension: 0.4
-    }
-  ]
+interface Transaction {
+  date: string
+  type: 'reward' | 'investment' | 'loan'
+  description: string
+  amount: number
 }
 
-// Bar Chart Data
-const loanData = {
-  labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+// Fetch real data
+const { data: stats } = await useFetch('/api/stats')
+const { data: transactions } = await useFetch('/api/transactions')
+
+const totalInvestment = computed(() => stats.value?.totalInvestment || 0)
+const totalRewards = computed(() => stats.value?.totalRewards || 0)
+const totalLoans = computed(() => stats.value?.totalLoans || 0)
+const netProfit = computed(() => stats.value?.netProfit || 0)
+
+const investmentChange = computed(() => stats.value?.investmentChange || 0)
+const rewardsChange = computed(() => stats.value?.rewardsChange || 0)
+const loansChange = computed(() => stats.value?.loansChange || 0)
+const profitChange = computed(() => stats.value?.profitChange || 0)
+
+const chartPeriod = ref('30d')
+const distributionPeriod = ref('30d')
+
+const investmentRewardsData = computed(() => ({
+  labels: stats.value?.chartData?.labels || [],
   datasets: [
     {
-      label: 'Số lượng gói vay',
-      data: [45, 52, 48, 58, 63, 70, 75, 82, 88, 92, 95, 100],
-      backgroundColor: '#10B981'
+      label: 'Đầu tư',
+      data: stats.value?.chartData?.investments || [],
+      borderColor: '#3b82f6',
+      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+      fill: true
+    },
+    {
+      label: 'Phần thưởng',
+      data: stats.value?.chartData?.rewards || [],
+      borderColor: '#22c55e',
+      backgroundColor: 'rgba(34, 197, 94, 0.1)',
+      fill: true
     }
   ]
-}
+}))
 
-// Pie Chart Data
-const distributionData = {
-  labels: ['Vay mua nhà', 'Vay kinh doanh', 'Vay tiêu dùng', 'Vay xe'],
+const profitDistributionData = computed(() => ({
+  labels: ['Kickstarter', 'Coin', 'Khoản vay'],
   datasets: [
     {
-      data: [40, 25, 20, 15],
-      backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444']
+      data: [
+        stats.value?.distribution?.kickstarter || 0,
+        stats.value?.distribution?.coin || 0,
+        stats.value?.distribution?.loans || 0
+      ],
+      backgroundColor: [
+        '#3b82f6',
+        '#22c55e',
+        '#f59e0b'
+      ]
     }
   ]
+}))
+
+const transactionColumns = [
+  {
+    key: 'date',
+    id: 'date',
+    label: 'Ngày',
+    accessorKey: 'date'
+  },
+  {
+    key: 'type',
+    id: 'type',
+    label: 'Loại',
+    accessorKey: 'type'
+  },
+  {
+    key: 'description',
+    id: 'description',
+    label: 'Mô tả',
+    accessorKey: 'description'
+  },
+  {
+    key: 'amount',
+    id: 'amount',
+    label: 'Số tiền',
+    accessorKey: 'amount'
+  }
+]
+
+const recentTransactions = computed(() => transactions.value || [])
+
+function formatNumber(number: number) {
+  return new Intl.NumberFormat('vi-VN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(number)
 }
 
-// Doughnut Chart Data
-const successRateData = {
-  labels: ['Thành công', 'Đang xử lý', 'Từ chối'],
-  datasets: [
-    {
-      data: [75, 15, 10],
-      backgroundColor: ['#10B981', '#F59E0B', '#EF4444']
-    }
-  ]
-}
-
-// Chart Options
-const lineOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: false
-    }
+function getTransactionTypeColor(type: Transaction['type']) {
+  switch (type) {
+    case 'reward':
+      return 'success'
+    case 'investment':
+      return 'primary'
+    case 'loan':
+      return 'warning'
+    default:
+      return 'neutral'
   }
 }
 
-const barOptions = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: false
-    }
+function getTransactionTypeLabel(type: Transaction['type']) {
+  switch (type) {
+    case 'reward':
+      return 'Phần thưởng'
+    case 'investment':
+      return 'Đầu tư'
+    case 'loan':
+      return 'Khoản vay'
+    default:
+      return type
   }
 }
 
-const pieOptions = {
-  responsive: true,
-  maintainAspectRatio: false
-}
-
-const doughnutOptions = {
-  responsive: true,
-  maintainAspectRatio: false
+async function refreshData() {
+  await refreshNuxtData(['stats', 'transactions'])
 }
 </script>

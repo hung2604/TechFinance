@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <!-- Header with actions -->
     <div class="flex justify-between items-center">
-      <h1 class="text-2xl font-semibold">Lịch sử mua coin</h1>
+      <h1 class="text-2xl font-semibold">Lịch sử mua MX</h1>
       <div class="flex items-center gap-2">
         <UButton
           color="gray"
@@ -30,8 +30,8 @@
             <UIcon name="i-heroicons-currency-dollar" class="w-6 h-6 text-primary-500" />
           </div>
           <div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">Tổng số coin</div>
-            <div class="text-xl font-semibold">{{ formatNumber(stats.totalCoins) }}</div>
+            <div class="text-sm text-gray-500 dark:text-gray-400">Số lượng MX đang sở hữu</div>
+            <div class="text-xl font-semibold">{{ formatMX(stats.totalCoins) }}</div>
           </div>
         </div>
       </UCard>
@@ -121,40 +121,90 @@
     <!-- Data Table -->
     <UCard>
       <UTable
-        :rows="records"
+        :data="records"
         :columns="columns"
         :loading="loading"
         :sort="{ column: sortBy, direction: sortDirection }"
         @sort="handleSort"
+        sticky
       >
-        <template #amount-data="{ row }">
-          {{ formatCurrency(row.amount) }}
+        <template #empty-state>
+          <div class="text-center py-4 text-gray-500">
+            <UIcon name="i-heroicons-inbox" class="w-8 h-8 mx-auto mb-2" />
+            <p>Không có dữ liệu</p>
+          </div>
         </template>
 
-        <template #coinValue-data="{ row }">
-          {{ formatCurrency(row.coinValue) }}
+        <template #loading-state>
+          <div class="text-center py-4">
+            <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 mx-auto mb-2 animate-spin" />
+            <p>Đang tải dữ liệu...</p>
+          </div>
         </template>
 
-        <template #purchaseDate-data="{ row }">
-          {{ formatDate(row.purchaseDate) }}
+        <template #quantity-cell="{ row }">
+          {{ formatMX(row.original.quantity) }}
         </template>
 
-        <template #actions-data="{ row }">
+        <template #amount-cell="{ row }">
+          {{ formatCurrency(row.original.amount) }}
+        </template>
+
+        <template #coinValue-cell="{ row }">
+          {{ formatCurrency(row.original.coinValue) }}
+        </template>
+
+        <template #purchaseDate-cell="{ row }">
+          {{ formatDate(row.original.purchaseDate) }}
+        </template>
+
+        <template #actions-cell="{ row }">
           <div class="flex items-center gap-2">
             <UButton
               color="primary"
               variant="ghost"
               icon="i-heroicons-pencil-square"
               size="xs"
-              @click="openEditModal(row)"
+              @click="openEditModal(row.original)"
             />
-            <UButton
-              color="red"
-              variant="ghost"
-              icon="i-heroicons-trash"
-              size="xs"
-              @click="confirmDelete(row)"
-            />
+            <UPopover :dismissible="false" :ui="{ content: 'p-4' }">
+              <UButton
+                color="red"
+                variant="ghost"
+                icon="i-heroicons-trash"
+                size="xs"
+              />
+              <template #content>
+                <div class="p-4 space-y-4">
+                  <div class="flex items-center gap-2">
+                    <UIcon name="i-heroicons-exclamation-triangle" class="w-5 h-5 text-red-500" />
+                    <p class="font-medium">Xác nhận xóa</p>
+                  </div>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Bạn có chắc chắn muốn xóa bản ghi này?
+                  </p>
+                  <div class="flex justify-end gap-2">
+                    <UButton
+                      color="gray"
+                      variant="soft"
+                      size="sm"
+                      @click="$refs.deletePopover?.close()"
+                    >
+                      Hủy
+                    </UButton>
+                    <UButton
+                      color="red"
+                      variant="solid"
+                      size="sm"
+                      :loading="loading"
+                      @click="handleDelete(row.original)"
+                    >
+                      Xóa
+                    </UButton>
+                  </div>
+                </div>
+              </template>
+            </UPopover>
           </div>
         </template>
       </UTable>
@@ -168,95 +218,196 @@
           v-model="currentPage"
           :total="pagination.total"
           :per-page="pagination.limit"
+          :page-count="pagination.totalPages"
           @change="fetchRecords"
         />
       </div>
     </UCard>
 
     <!-- Create/Edit Modal -->
-    <UModal v-model="showModal">
-      <UCard>
-        <template #header>
-          <div class="text-lg font-semibold">
-            {{ isEditing ? 'Cập nhật' : 'Thêm mới' }} lịch sử mua coin
+    <UModal v-model:open="modal.isOpen" :ui="{ width: 'max-w-xl' }">
+      <template #header>
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-primary-100 dark:bg-primary-900 rounded-lg">
+            <UIcon 
+              :name="isEditing ? 'i-heroicons-pencil-square' : 'i-heroicons-plus'" 
+              class="w-5 h-5 text-primary-500"
+            />
           </div>
-        </template>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              {{ isEditing ? 'Cập nhật' : 'Thêm mới' }} lịch sử mua MX
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              {{ isEditing ? 'Chỉnh sửa thông tin giao dịch mua USDT' : 'Nhập thông tin cho giao dịch mua USDT mới' }}
+            </p>
+          </div>
+        </div>
+      </template>
 
-        <form @submit.prevent="handleSubmit" class="space-y-4">
-          <UFormGroup 
-            label="Ngày mua" 
-            required
-            :error="validation.errors.purchaseDate"
-          >
-            <UInput
-              v-model="form.purchaseDate"
-              type="date"
-              :ui="{ width: 'w-full' }"
-            />
-          </UFormGroup>
+      <template #body>
+        <form @submit.prevent="handleSubmit" class="space-y-6">
+          <div class="space-y-6 p-2">
+            <!-- Ngày mua -->
+            <div class="form-group">
+              <label class="block mb-2">
+                <span class="text-base font-medium text-gray-700 dark:text-gray-200 flex items-center gap-1">
+                  <UIcon name="i-heroicons-calendar-days" class="w-5 h-5 text-gray-500" />
+                  Ngày mua
+                  <span class="text-red-500 text-sm">*</span>
+                </span>
+              </label>
+              <div class="relative">
+                <UInput
+                  v-model="form.purchaseDate"
+                  type="date"
+                  :ui="{ 
+                    width: 'w-full',
+                    base: 'h-12 transition-all duration-200 hover:border-primary-500 focus:ring-2 focus:ring-primary-500/20',
+                    icon: { trailing: { name: 'i-heroicons-calendar' } }
+                  }"
+                  placeholder="Chọn ngày mua"
+                />
+                <div v-if="validation.errors.purchaseDate" class="absolute -bottom-6 left-0">
+                  <span class="text-sm text-red-500 flex items-center gap-1">
+                    <UIcon name="i-heroicons-exclamation-circle" class="w-4 h-4" />
+                    {{ validation.errors.purchaseDate }}
+                  </span>
+                </div>
+              </div>
+            </div>
 
-          <UFormGroup 
-            label="Số lượng" 
-            required
-            :error="validation.errors.quantity"
-          >
-            <UInput
-              v-model="form.quantity"
-              type="number"
-              min="0"
-              step="0.01"
-              :ui="{ width: 'w-full' }"
-            />
-          </UFormGroup>
+            <!-- Số lượng và Số tiền -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Số lượng MX -->
+              <div class="form-group">
+                <label class="block mb-2">
+                  <span class="text-base font-medium text-gray-700 dark:text-gray-200 flex items-center gap-1">
+                    <UIcon name="i-heroicons-currency-dollar" class="w-5 h-5 text-gray-500" />
+                    Số lượng MX
+                    <span class="text-red-500 text-sm">*</span>
+                  </span>
+                </label>
+                <div class="relative">
+                  <UInput
+                    v-model="form.quantity"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    :ui="{ 
+                      width: 'w-full',
+                      base: 'h-12 transition-all duration-200 hover:border-primary-500 focus:ring-2 focus:ring-primary-500/20',
+                      icon: { trailing: { name: 'i-heroicons-currency-dollar' } }
+                    }"
+                    placeholder="Nhập số lượng"
+                  />
+                  <div v-if="validation.errors.quantity" class="absolute -bottom-6 left-0">
+                    <span class="text-sm text-red-500 flex items-center gap-1">
+                      <UIcon name="i-heroicons-exclamation-circle" class="w-4 h-4" />
+                      {{ validation.errors.quantity }}
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-          <UFormGroup 
-            label="Số tiền" 
-            required
-            :error="validation.errors.amount"
-          >
-            <UInput
-              v-model="form.amount"
-              type="number"
-              min="0"
-              step="0.01"
-              :ui="{ width: 'w-full' }"
-            />
-          </UFormGroup>
+              <!-- Số tiền -->
+              <div class="form-group">
+                <label class="block mb-2">
+                  <span class="text-base font-medium text-gray-700 dark:text-gray-200 flex items-center gap-1">
+                    <UIcon name="i-heroicons-banknotes" class="w-5 h-5 text-gray-500" />
+                    Số tiền (USDT)
+                    <span class="text-red-500 text-sm">*</span>
+                  </span>
+                </label>
+                <div class="relative">
+                  <UInput
+                    v-model="form.amount"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    :ui="{ 
+                      width: 'w-full',
+                      base: 'h-12 transition-all duration-200 hover:border-primary-500 focus:ring-2 focus:ring-primary-500/20',
+                      icon: { trailing: { name: 'i-heroicons-banknotes' } }
+                    }"
+                    placeholder="Nhập số tiền"
+                  />
+                  <div v-if="validation.errors.amount" class="absolute -bottom-6 left-0">
+                    <span class="text-sm text-red-500 flex items-center gap-1">
+                      <UIcon name="i-heroicons-exclamation-circle" class="w-4 h-4" />
+                      {{ validation.errors.amount }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <UFormGroup 
-            label="Giá trị 1 coin" 
-            required
-            :error="validation.errors.coinValue"
-          >
-            <UInput
-              v-model="form.coinValue"
-              type="number"
-              min="0"
-              step="0.01"
-              :ui="{ width: 'w-full' }"
-            />
-          </UFormGroup>
+            <!-- Giá trị 1 MX -->
+            <div class="form-group">
+              <label class="block mb-2">
+                <span class="text-base font-medium text-gray-700 dark:text-gray-200 flex items-center gap-1">
+                  <UIcon name="i-heroicons-chart-bar" class="w-5 h-5 text-gray-500" />
+                  Giá trị 1 MX (USDT)
+                </span>
+              </label>
+              <div class="relative">
+                <UInput
+                  v-model="form.coinValue"
+                  type="number"
+                  readonly
+                  disabled
+                  :ui="{ 
+                    width: 'w-full',
+                    base: 'h-12 bg-gray-50 dark:bg-gray-800 cursor-not-allowed',
+                    icon: { trailing: { name: 'i-heroicons-lock-closed' } }
+                  }"
+                  :placeholder="form.quantity && form.amount ? formatMX(calculatedCoinValue) : 'Được tính tự động'"
+                />
+              </div>
+            </div>
+          </div>
         </form>
+      </template>
 
-        <template #footer>
-          <div class="flex justify-end gap-2">
-            <UButton
-              color="gray"
-              variant="soft"
-              @click="showModal = false"
-            >
-              Hủy
-            </UButton>
-            <UButton
-              color="primary"
-              :loading="submitting"
-              @click="handleSubmit"
-            >
+      <template #footer>
+        <div class="flex justify-end gap-3">
+          <UButton
+            color="gray"
+            variant="soft"
+            :ui="{ 
+              padding: 'px-6 py-2.5',
+              font: 'font-medium',
+              base: 'transition-all duration-200 hover:opacity-80'
+            }"
+            @click="modal.close"
+          >
+            <UIcon name="i-heroicons-x-mark" class="w-5 h-5 mr-1.5" />
+            Hủy
+          </UButton>
+          <UButton
+            color="primary"
+            :loading="submitting"
+            :ui="{ 
+              padding: 'px-6 py-2.5',
+              font: 'font-medium',
+              base: 'transition-all duration-200 hover:opacity-80'
+            }"
+            @click="handleSubmit"
+          >
+            <template v-if="!submitting">
+              <UIcon 
+                :name="isEditing ? 'i-heroicons-pencil-square' : 'i-heroicons-plus'" 
+                class="w-5 h-5 mr-1.5" 
+              />
               {{ isEditing ? 'Cập nhật' : 'Thêm mới' }}
-            </UButton>
-          </div>
-        </template>
-      </UCard>
+            </template>
+            <template v-else>
+              <UIcon name="i-heroicons-arrow-path" class="w-5 h-5 mr-1.5 animate-spin" />
+              {{ isEditing ? 'Đang cập nhật...' : 'Đang thêm...' }}
+            </template>
+          </UButton>
+        </div>
+      </template>
     </UModal>
   </div>
 </template>
@@ -289,34 +440,29 @@ interface Stats {
 
 const columns = [
   {
-    key: 'purchaseDate',
-    label: 'Ngày mua',
-    sortable: true,
-    id: 'purchaseDate'
+    accessorKey: 'purchaseDate',
+    header: 'Ngày mua',
+    sortable: true
   },
   {
-    key: 'quantity',
-    label: 'Số lượng',
-    sortable: true,
-    id: 'quantity'
+    accessorKey: 'quantity',
+    header: 'Số lượng MX',
+    sortable: true
   },
   {
-    key: 'amount',
-    label: 'Số tiền',
-    sortable: true,
-    id: 'amount'
+    accessorKey: 'amount',
+    header: 'Số tiền',
+    sortable: true
   },
   {
-    key: 'coinValue',
-    label: 'Giá trị 1 coin',
-    sortable: true,
-    id: 'coinValue'
+    accessorKey: 'coinValue',
+    header: 'Giá trị 1 MX',
+    sortable: true
   },
   {
-    key: 'actions',
-    label: 'Thao tác',
-    sortable: false,
-    id: 'actions'
+    accessorKey: 'actions',
+    header: 'Thao tác',
+    sortable: false
   }
 ]
 
@@ -326,7 +472,7 @@ const submitting = ref(false)
 const currentPage = ref(1)
 const pagination = ref({
   page: 1,
-  limit: 10,
+  limit: 1000,
   total: 0,
   totalPages: 0
 })
@@ -359,30 +505,50 @@ const isEditing = ref(false)
 const editingId = ref('')
 
 const modal = useModal()
-const showModal = computed({
-  get: () => modal.isOpen.value,
-  set: (value: boolean) => {
-    if (!value) modal.close()
+
+// Thêm computed property để tính giá trị 1 đồng
+const calculatedCoinValue = computed(() => {
+  const quantity = Number(form.value.quantity)
+  const amount = Number(form.value.amount)
+  if (quantity && amount) {
+    return amount / quantity
   }
+  return 0
+})
+
+// Watch để cập nhật coinValue khi số lượng hoặc số tiền thay đổi
+watch([() => form.value.quantity, () => form.value.amount], () => {
+  form.value.coinValue = calculatedCoinValue.value
 })
 
 const validation = useFormValidation({
   purchaseDate: { required: true },
   quantity: { required: true, min: 0 },
-  amount: { required: true, min: 0 },
-  coinValue: { required: true, min: 0 }
+  amount: { required: true, min: 0 }
 })
 
 // Format helpers
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
-    currency: 'VND'
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(value)
 }
 
-const formatNumber = (value: number) => {
-  return new Intl.NumberFormat('vi-VN').format(value)
+const formatNumber = (value: number, decimals = 2) => {
+  return new Intl.NumberFormat('vi-VN', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals
+  }).format(value)
+}
+
+const formatMX = (value: number) => {
+  return new Intl.NumberFormat('vi-VN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value) + ' MX'
 }
 
 const formatDate = (date: string) => {
@@ -472,11 +638,21 @@ const fetchRecords = async () => {
       sortDirection: sortDirection.value
     })
 
+    console.log('Fetching records with params:', queryParams.toString())
     const response = await $fetch<PaginationResponse>(`/api/coin-history?${queryParams}`)
+    console.log('API Response:', response)
+    
+    if (!response?.data) {
+      console.error('No data in response:', response)
+      return
+    }
+
     records.value = response.data
     pagination.value = response.pagination
     calculateStats(response.data)
+    console.log('Updated records:', records.value)
   } catch (error) {
+    console.error('Error fetching records:', error)
     useCustomToast().showError('Có lỗi xảy ra khi tải dữ liệu')
   } finally {
     loading.value = false
@@ -492,7 +668,7 @@ const openCreateModal = () => {
     amount: 0,
     coinValue: 0
   }
-  showModal.value = true
+  modal.open()
 }
 
 const openEditModal = (row: CoinHistoryRecord) => {
@@ -504,7 +680,7 @@ const openEditModal = (row: CoinHistoryRecord) => {
     amount: row.amount,
     coinValue: row.coinValue
   }
-  showModal.value = true
+  modal.open(row)
 }
 
 const handleSubmit = async () => {
@@ -546,24 +722,19 @@ const handleSubmit = async () => {
   }
 }
 
-const confirmDelete = async (row: CoinHistoryRecord) => {
-  const confirmed = await useConfirmDialog().reveal({
-    message: 'Bạn có chắc chắn muốn xóa bản ghi này?',
-    confirmLabel: 'Xóa',
-    cancelLabel: 'Hủy',
-    type: 'danger'
-  })
-
-  if (confirmed) {
-    try {
-      await $fetch(`/api/coin-history/${row._id}`, {
-        method: 'DELETE'
-      })
-      useCustomToast().showSuccess('Xóa thành công')
-      await fetchRecords()
-    } catch (error) {
-      useCustomToast().showError('Có lỗi xảy ra khi xóa dữ liệu')
-    }
+const handleDelete = async (row: CoinHistoryRecord) => {
+  try {
+    loading.value = true
+    await $fetch(`/api/coin-history/${row._id}`, {
+      method: 'DELETE'
+    })
+    useCustomToast().showSuccess('Xóa thành công')
+    await fetchRecords()
+  } catch (error) {
+    console.error('Error deleting record:', error)
+    useCustomToast().showError('Có lỗi xảy ra khi xóa dữ liệu')
+  } finally {
+    loading.value = false
   }
 }
 

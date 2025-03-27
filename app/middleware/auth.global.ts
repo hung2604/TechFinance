@@ -1,6 +1,6 @@
 export default defineNuxtRouteMiddleware((to) => {
   const token = useCookie('auth_token')
-  const publicPages = ['/login', '/register']
+  const publicPages = ['/login', '/register', '/forgot-password', '/reset-password']
   
   // Nếu đã đăng nhập và cố truy cập trang login/register
   if (token.value && publicPages.includes(to.path)) {

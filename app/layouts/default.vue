@@ -102,7 +102,7 @@
             <div class="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-ping opacity-75"></div>
           </UButton>
 
-          <UDropdown
+          <UDropdownMenu
             :items="userMenuItems"
             :popper="{ placement: 'bottom-end' }"
           >
@@ -122,7 +122,7 @@
                 class="w-4 h-4 transition-transform duration-300 group-hover:rotate-180" 
               />
             </UButton>
-          </UDropdown>
+          </UDropdownMenu>
         </div>
       </header>
 
@@ -148,19 +148,24 @@ const menuItems = [
     icon: 'i-heroicons-home'
   },
   {
+    label: 'Quản lý người dùng',
+    path: '/users',
+    icon: 'i-heroicons-users'
+  },
+  {
     label: 'Lịch sử mua coin',
     path: '/coin-history',
     icon: 'i-heroicons-currency-dollar'
   },
   {
-    label: 'Quản lý gói mua',
-    path: '/purchase-packages',
-    icon: 'i-heroicons-shopping-cart'
-  },
-  {
-    label: 'Quản lý gói vay',
+    label: 'Quản lý khoản vay',
     path: '/loan-packages',
     icon: 'i-heroicons-banknotes'
+  },
+  {
+    label: 'Kickstarter',
+    path: '/kickstarter',
+    icon: 'i-heroicons-rocket-launch'
   }
 ]
 
@@ -168,7 +173,7 @@ const userMenuItems = [
   [
     {
       label: 'Admin',
-      slot: 'account',
+      icon: 'i-heroicons-user-circle',
       disabled: true
     }
   ],
@@ -181,12 +186,19 @@ const userMenuItems = [
     {
       label: 'Đăng xuất',
       icon: 'i-heroicons-arrow-left-on-rectangle',
-      click: () => {
-        const cookie = useCookie('auth_token')
-        if (cookie.value) {
-          cookie.value = null
+      onSelect: async () => {
+        try {
+          console.log('Logging out...')
+          await $fetch('/api/auth/logout', {
+            method: 'POST'
+          })
+          console.log('Logout successful')
+          const authCookie = useCookie<string | null>('auth_token')
+          authCookie.value = null
+          navigateTo('/login')
+        } catch (error) {
+          console.error('Error logging out:', error)
         }
-        navigateTo('/login')
       }
     }
   ]
