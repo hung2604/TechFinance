@@ -18,6 +18,7 @@ class AuthService {
     try {
       // Tìm user theo email
       console.log('email', email)
+      console.log('password', password)
       const user = await User.findByEmail(email)
       if (!user) {
         throw new Error('Email hoặc mật khẩu không chính xác')
