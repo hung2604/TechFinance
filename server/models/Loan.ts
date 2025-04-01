@@ -11,6 +11,68 @@ const loanSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
+  remainingAmount: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  usedAmount: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
+  },
+  purchasedMX: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
+  },
+  rewardHistory: {
+    type: Map,
+    of: {
+      amount: {
+        type: Number,
+        required: true,
+        min: 0
+      },
+      totalMX: {
+        type: Number,
+        required: true,
+        min: 0
+      },
+      rewardRate: {
+        type: Number,
+        required: true,
+        min: 0
+      }
+    },
+    default: new Map()
+  },
+  totalRewards: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
+  },
+  purchaseHistory: [{
+    purchaseId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'CoinHistory'
+    },
+    amount: {
+      type: Number,
+      required: true
+    },
+    mxAmount: {
+      type: Number,
+      required: true
+    },
+    date: {
+      type: Date,
+      required: true
+    }
+  }],
   term: {
     type: String,
     required: true,

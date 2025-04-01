@@ -30,6 +30,29 @@
           </div>
         </template>
 
+        <template #usage-cell="{ row }">
+          <div class="space-y-1">
+            <div class="text-sm">
+              Đã sử dụng: {{ formatCurrency(row.original.usedAmount) }} USDT
+            </div>
+            <div class="text-sm text-gray-500">
+              Còn lại: {{ formatCurrency(row.original.remainingAmount) }} USDT
+            </div>
+            <div class="text-sm text-blue-500">
+              Đã mua: {{ row.original.purchaseHistory?.length || 0 }} lần
+            </div>
+            <div class="text-sm text-green-500">
+              Số MX đã mua: {{ row.original.purchasedMX?.toFixed(2) || '0' }} MX
+            </div>
+            <div class="text-sm text-green-500">
+              Số tiền đã thu về: {{ formatCurrency(row.original.totalRewards) }} USDT
+            </div>
+            <div class="text-sm" :class="calculateProfitLoss(row.original) >= 0 ? 'text-success-500' : 'text-error-500'">
+              Lời/Lỗ: {{ formatCurrency(calculateProfitLoss(row.original)) }} VND
+            </div>
+          </div>
+        </template>
+
         <template #term-cell="{ row }">
           {{ formatTerm(row.original.term) }}
         </template>
@@ -286,6 +309,10 @@ const columns = [
     header: 'Số tiền',
   },
   {
+    accessorKey: 'usage',
+    header: 'Sử dụng',
+  },
+  {
     accessorKey: 'term',
     header: 'Kỳ hạn',
   },
@@ -513,6 +540,20 @@ const calculateInterestToDate = (loan: any) => {
   // Calculate interest for current period
   const daysDiff = Math.ceil((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24))
   return loan.amountVND * dailyInterestRate * daysDiff
+}
+
+// Add this function before the onMounted hook
+const calculateProfitLoss = (loan: any) => {
+  if (!loan.purchasedMX || !loan.totalRewards) return 0
+  
+  // Convert rewards to VND (1 USDT = 25000 VND)
+  const rewardsInVND = loan.totalRewards * 25000
+  
+  // Calculate total investment in VND
+  const investmentInVND = calculateInterestToDate(loan)
+  
+  // Calculate profit/loss
+  return rewardsInVND - investmentInVND
 }
 
 // Initial fetch

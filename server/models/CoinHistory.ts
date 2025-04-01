@@ -19,6 +19,11 @@ const coinHistorySchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 0
+  },
+  loanId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Loan',
+    default: null
   }
 }, {
   timestamps: true

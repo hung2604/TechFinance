@@ -108,11 +108,7 @@
         </div>
       </UCard>
     </div>
-
-    <!-- Charts Grid -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Investment vs Rewards Chart -->
-      <UCard>
+    <UCard>
         <template #header>
           <div class="flex items-center justify-between">
             <h3 class="text-lg font-semibold">Đầu tư vs Phần thưởng</h3>
@@ -141,9 +137,21 @@
               },
               scales: {
                 y: {
+                  type: 'linear',
+                  display: true,
+                  position: 'left',
                   beginAtZero: true,
                   ticks: {
                     callback: (value) => formatNumber(value) + ' USDT'
+                  }
+                },
+                y1: {
+                  type: 'linear',
+                  display: true,
+                  position: 'right',
+                  beginAtZero: true,
+                  ticks: {
+                    callback: (value) => formatNumber(value) + ' MX'
                   }
                 }
               }
@@ -151,74 +159,6 @@
           />
         </div>
       </UCard>
-
-      <!-- Profit Distribution Chart -->
-      <UCard>
-        <template #header>
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-semibold">Phân bố lợi nhuận</h3>
-            <USelect
-              v-model="distributionPeriod"
-              :options="[
-                { label: '7 ngày', value: '7d' },
-                { label: '30 ngày', value: '30d' },
-                { label: '90 ngày', value: '90d' }
-              ]"
-              class="w-32"
-            />
-          </div>
-        </template>
-
-        <div class="h-80">
-          <DoughnutChart
-            :data="profitDistributionData"
-            :options="{
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  position: 'right'
-                }
-              }
-            }"
-          />
-        </div>
-      </UCard>
-    </div>
-
-    <!-- Recent Transactions -->
-    <UCard>
-      <template #header>
-        <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold">Giao dịch gần đây</h3>
-          <UButton
-            color="primary"
-            variant="ghost"
-            to="/transactions"
-          >
-            Xem tất cả
-          </UButton>
-        </div>
-      </template>
-
-      <UTable
-        :columns="transactionColumns"
-        :data="recentTransactions"
-      >
-        <template #type-cell="{ row }">
-          <UBadge
-            :color="getTransactionTypeColor(row.type)"
-            :label="getTransactionTypeLabel(row.type)"
-          />
-        </template>
-
-        <template #amount-cell="{ row }">
-          <span :class="row.amount >= 0 ? 'text-success-500' : 'text-error-500'">
-            {{ row.amount >= 0 ? '+' : '' }}{{ formatNumber(row.amount) }} USDT
-          </span>
-        </template>
-      </UTable>
-    </UCard>
   </div>
 </template>
 
@@ -275,18 +215,28 @@ const investmentRewardsData = computed(() => ({
   labels: stats.value?.chartData?.labels || [],
   datasets: [
     {
-      label: 'Đầu tư',
-      data: stats.value?.chartData?.investments || [],
+      label: 'Số lượng coin',
+      data: stats.value?.chartData?.coins || [],
       borderColor: '#3b82f6',
       backgroundColor: 'rgba(59, 130, 246, 0.1)',
-      fill: true
+      fill: true,
+      yAxisID: 'y1'
+    },
+    {
+      label: 'Đầu tư',
+      data: stats.value?.chartData?.investments || [],
+      borderColor: '#22c55e',
+      backgroundColor: 'rgba(34, 197, 94, 0.1)',
+      fill: true,
+      yAxisID: 'y'
     },
     {
       label: 'Phần thưởng',
       data: stats.value?.chartData?.rewards || [],
-      borderColor: '#22c55e',
-      backgroundColor: 'rgba(34, 197, 94, 0.1)',
-      fill: true
+      borderColor: '#f59e0b',
+      backgroundColor: 'rgba(245, 158, 11, 0.1)',
+      fill: true,
+      yAxisID: 'y'
     }
   ]
 }))
