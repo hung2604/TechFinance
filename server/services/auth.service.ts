@@ -17,6 +17,7 @@ class AuthService {
   async login(email: string, password: string): Promise<AuthResponse> {
     try {
       // Tìm user theo email
+      console.log('email', email)
       const user = await User.findByEmail(email)
       if (!user) {
         throw new Error('Email hoặc mật khẩu không chính xác')
