@@ -1,15 +1,13 @@
 import { Kickstarter } from '../models/Kickstarter'
-
-const MEXC_API_URL = 'https://www.mexc.com/api/operateactivity/sun_shines/list'
+import { mexcRequest } from '../utils/mexc'
 
 export async function syncKickstarterProjects() {
   try {
     console.log('Starting Kickstarter projects sync...')
 
     // Lấy danh sách dự án từ MEXC API
-    const response = await fetch(MEXC_API_URL)
-    console.log('Call MEXC API:', response.url)
-    const data = await response.json()
+    const data = await mexcRequest('/api/operateactivity/sun_shines/list')
+    console.log('Call MEXC API: /api/operateactivity/sun_shines/list')
 
     // Chuyển đổi dữ liệu từ MEXC sang định dạng của chúng ta
     const projects = data.data.map((item: any) => ({
