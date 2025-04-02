@@ -2,6 +2,10 @@ import mongoose from 'mongoose'
 import { defineNitroPlugin } from 'nitropack/runtime/plugin'
 
 export default defineNitroPlugin(async (nitroApp) => {
+    // Chỉ kết nối MongoDB trong môi trường development
+    if (process.env.NODE_ENV !== 'development') {
+      return
+    }
   const config = useRuntimeConfig()
   
   try {
