@@ -1,10 +1,4 @@
 {
-  "functions": {
-    ".output/server/api/**/*": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
