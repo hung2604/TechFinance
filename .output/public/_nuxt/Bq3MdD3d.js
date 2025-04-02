@@ -1,1 +1,0 @@
-import{_ as a,c as n,a as r,o as s}from"./oqaamrP9.js";const c={};function o(t,e){return s(),n("div",null,e[0]||(e[0]=[r("h1",null,"Quản lý gói mua",-1)]))}const u=a(c,[["render",o]]);export{u as default};

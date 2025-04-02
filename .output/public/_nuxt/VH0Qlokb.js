@@ -1,1 +1,0 @@
-import{ak as u,r as o,p as s,aa as r}from"./oqaamrP9.js";function c(n){const e=u({dir:o("ltr")});return s(()=>{var t;return(n==null?void 0:n.value)||((t=e.dir)==null?void 0:t.value)||"ltr"})}let a=0;function d(n,e="reka"){const t=u({useId:void 0});return r?`${e}-${r()}`:t.useId?`${e}-${t.useId()}`:`${e}-${++a}`}export{d as a,c as u};
