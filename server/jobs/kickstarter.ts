@@ -5,9 +5,10 @@ const MEXC_API_URL = 'https://www.mexc.com/api/operateactivity/sun_shines/list'
 export async function syncKickstarterProjects() {
   try {
     console.log('Starting Kickstarter projects sync...')
-    
+
     // Lấy danh sách dự án từ MEXC API
     const response = await fetch(MEXC_API_URL)
+    console.log('Call MEXC API:', response.url)
     const data = await response.json()
 
     // Chuyển đổi dữ liệu từ MEXC sang định dạng của chúng ta
@@ -66,7 +67,7 @@ function getProjectStatus(startTime: string, endTime: string): 'upcoming' | 'ong
   const now = new Date()
   const start = new Date(startTime)
   const end = new Date(endTime)
-  
+
   if (now < start) {
     return 'upcoming'
   } else if (now > end) {
@@ -77,4 +78,4 @@ function getProjectStatus(startTime: string, endTime: string): 'upcoming' | 'ong
 }
 
 // Chạy job ngay lập tức
-syncKickstarterProjects() 
+syncKickstarterProjects()
