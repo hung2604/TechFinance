@@ -5,10 +5,6 @@ const MEXC_API_URL = 'https://www.mexc.com/api/operateactivity/sun_shines/list'
 export async function syncKickstarterProjects() {
   try {
     console.log('Starting Kickstarter projects sync1...')
-
-    // Lấy danh sách dự án từ MEXC API
-    const response1 = await fetch('https://webhook.site/13fe6f9b-3f6b-4521-ba84-ce58a53071e7')
-    console.log('da vao day')
     const response = await fetch(MEXC_API_URL)
     console.log('Call MEXC API:', response.url)
     const data = await response.json()
