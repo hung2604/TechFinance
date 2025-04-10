@@ -1,6 +1,6 @@
 import { Kickstarter } from '../models/Kickstarter'
 
-const MEXC_API_URL = 'https://www.mexc.com/api/operateactivity/sun_shines/list'
+const MEXC_API_URL = 'http://45.251.115.153:3000/api/mexc'
 
 export async function syncKickstarterProjects() {
   try {
