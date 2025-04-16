@@ -34,7 +34,7 @@ class AuthService {
       const token = jwt.sign(
         { userId: user._id },
         process.env.JWT_SECRET || 'your-secret-key',
-        { expiresIn: '24h' }
+        { expiresIn: '30d' }
       )
 
       // Trả về thông tin user (không bao gồm password) và token
@@ -81,4 +81,4 @@ class AuthService {
   }
 }
 
-export const authService = new AuthService() 
+export const authService = new AuthService()
