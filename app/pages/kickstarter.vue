@@ -1,4 +1,4 @@
-<!-- 
+<!--
   IMPORTANT RULES TO FOLLOW:
   1. Always use v-model:open for UModal components
   2. Example: <UModal v-model:open="showModal">
@@ -225,7 +225,7 @@ const columns = [
     key: 'projectId',
     id: 'projectId',
     header: 'ID',
-    accessorKey: 'projectId'    
+    accessorKey: 'projectId'
   },
   {
     key: 'name',
@@ -271,7 +271,7 @@ const loading = ref(false)
 const projects = ref<Project[]>([])
 const total = ref(0)
 const page = ref(1)
-const limit = ref(10)
+const limit = ref(100)
 const status = ref('')
 
 const showEditModal = ref(false)
@@ -395,7 +395,7 @@ function confirmDelete(project: Project) {
 
 async function deleteProject() {
   if (!deletingProject.value) return
-  
+
   deleting.value = true
   try {
     await fetch(`/api/kickstarter/${deletingProject.value.projectId}`, {
@@ -420,4 +420,4 @@ watch([status, page, limit], () => {
 onMounted(() => {
   refreshData()
 })
-</script> 
+</script>
