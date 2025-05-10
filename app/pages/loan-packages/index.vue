@@ -47,6 +47,12 @@
             <div class="text-sm text-green-500">
               Số tiền đã thu về: {{ formatCurrency(row.original.totalRewards) }} USDT
             </div>
+            <div class="text-sm text-green-500">
+              Giá trung bình mua: {{ calculateAverageBuyPrice(row.original).toFixed(2) }} USDT/MX
+            </div>
+            <div class="text-sm" :class="calculateProfitLossByCurrentPrice(row.original, currentMXPrice) >= 0 ? 'text-success-500' : 'text-error-500'">
+              Lời/Lỗ (giá hiện tại): {{ formatCurrency(calculateProfitLossByCurrentPrice(row.original, currentMXPrice)) }} USDT
+            </div>
             <div class="text-sm" :class="calculateProfitLoss(row.original) >= 0 ? 'text-success-500' : 'text-error-500'">
               Lời/Lỗ: {{ formatCurrency(calculateProfitLoss(row.original)) }} VND
             </div>
@@ -554,6 +560,33 @@ const calculateProfitLoss = (loan: any) => {
   
   // Calculate profit/loss
   return rewardsInVND - investmentInVND
+}
+
+const currentMXPrice = 3.0 // Giá hiện tại của 1 MX (USDT)
+
+// Tính giá trung bình mua MX (USDT/MX)
+const calculateAverageBuyPrice = (loan: any) => {
+  if (!loan.purchaseHistory || loan.purchaseHistory.length === 0) return 0
+  let totalAmount = 0
+  let totalMX = 0
+  for (const purchase of loan.purchaseHistory) {
+    totalAmount += purchase.amount
+    totalMX += purchase.mxAmount
+  }
+  return totalMX === 0 ? 0 : totalAmount / totalMX
+}
+
+// Tính lời/lỗ dựa trên giá MX hiện tại
+const calculateProfitLossByCurrentPrice = (loan: any, currentMXPrice: number) => {
+  if (!loan.purchaseHistory || loan.purchaseHistory.length === 0) return 0
+  let totalAmount = 0
+  let totalMX = 0
+  for (const purchase of loan.purchaseHistory) {
+    totalAmount += purchase.amount
+    totalMX += purchase.mxAmount
+  }
+  const currentValue = totalMX * currentMXPrice
+  return currentValue - totalAmount
 }
 
 // Initial fetch
