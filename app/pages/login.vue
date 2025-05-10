@@ -181,7 +181,7 @@ const handleSubmit = async () => {
     
     // Lưu token vào cookie
     const authCookie = useCookie('auth_token', {
-      maxAge: form.value.remember ? 60 * 60 * 24 * 30 : 60 * 60 * 24 // 30 days if remember, 1 day if not
+      maxAge:  60 * 60 * 24 * 365
     })
     authCookie.value = response.token
 
